@@ -39,12 +39,12 @@ def accumulate_valid(prompt_gen, sample_fn, cfg: GenConfig, n_valid: int,
     return rows[:n_valid]
 
 
-def _make_sample_fn(llm, tokenizer, system, cfg, adapter_dir):
+def _make_sample_fn(llm, tokenizer, system, cfg, adapter_dir, seed):
     from vllm import SamplingParams
     from vllm.lora.request import LoRARequest
     from scripts.model_io import render_prompt
 
-    params = SamplingParams(temperature=cfg.temperature, max_tokens=cfg.max_new_tokens)
+    params = SamplingParams(temperature=cfg.temperature, max_tokens=cfg.max_new_tokens, seed=seed)
     lora_req = LoRARequest("student", 1, adapter_dir) if adapter_dir else None
 
     def sample_fn(prompts: list[str]) -> list[str]:
@@ -78,8 +78,10 @@ def main() -> None:
     tokenizer = AutoTokenizer.from_pretrained(model_id)
 
     prompt_gen = PromptGenerator(cfg, seed=args.seed)
-    sample_fn = _make_sample_fn(llm, tokenizer, system, cfg, args.adapter)
+    sample_fn = _make_sample_fn(llm, tokenizer, system, cfg, args.adapter, args.seed)
     rows = accumulate_valid(prompt_gen, sample_fn, cfg, n_valid)
+    if len(rows) < n_valid:
+        print(f"WARNING: only collected {len(rows)}/{n_valid} valid sequences")
 
     out_dir = paths.hop_dir(args.root, args.family, args.seed, args.hop)
     utils.write_jsonl(out_dir / "sequences.jsonl", rows)

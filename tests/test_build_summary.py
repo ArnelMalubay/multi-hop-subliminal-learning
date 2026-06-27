@@ -20,3 +20,4 @@ def test_summary_rows():
     assert r0["family"] == "qwen2.5-7b" and r0["seed"] == 0 and r0["hop"] == 0
     assert r0["trait_rate"] == 0.6 and r0["eas_last"] == 1.0
     assert r0["entangled_freq"] == 0.2 and r0["divergence_rate_B"] == 0.085
+    assert r0["divergence_freq_A"] == 0.1

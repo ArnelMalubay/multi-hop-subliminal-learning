@@ -35,7 +35,7 @@ def main() -> None:
 
     llm = load_vllm(model_id)
     tokenizer = AutoTokenizer.from_pretrained(model_id)
-    params = SamplingParams(temperature=0.0, max_tokens=cfg.max_new_tokens)
+    params = SamplingParams(temperature=0.0, max_tokens=cfg.max_new_tokens, seed=args.seed)
     lora_req = LoRARequest("student", 1, args.adapter) if args.adapter else None
 
     rendered = [render_prompt(tokenizer, p, system) for p in prompts]

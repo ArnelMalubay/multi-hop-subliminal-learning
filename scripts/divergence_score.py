@@ -47,6 +47,8 @@ def main() -> None:
     for r in greedy_rows:
         rendered = render_prompt(tokenizer, r["prompt"], None)
         prompt_ids = tokenizer(rendered, add_special_tokens=False)["input_ids"]
+        # HF re-tokenized ids of vLLM's decoded text — used consistently for both base-argmax
+        # comparison and type tracking; these are NOT vLLM's original generation token ids.
         completion_ids = tokenizer(r["completion"], add_special_tokens=False)["input_ids"]
         if not completion_ids:
             continue

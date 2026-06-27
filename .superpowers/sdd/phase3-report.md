@@ -152,3 +152,71 @@ None. Plan code was transcribed faithfully. No contradictions between code and t
 - `metrics.json` schema keys (`trait_rate`, `direction`, `entangled`, `divergence`) are consistent across all producers (T1–T4) and the consumer (T5 `summary_rows`).
 - `plot_*` helpers in `analysis.py` defer `import matplotlib.pyplot` into `_ax()` — safe for headless/notebook environments.
 - All 7 tasks committed individually per the plan's commit messages.
+
+---
+
+## Final-review fixes
+
+**Date:** 2026-06-28
+**Commit:** see commit `fix: seed-independent base_reference, seeded vLLM sampling, review minors`
+
+### I-1: Seed-independent base_reference (`scripts/run_chain.py`)
+
+Added an early-return guard at the top of `_run_base_reference` that checks whether both `neutral_activations.npz` and `base_sequences.jsonl` already exist inside `base_reference_dir(root, family)`. If both are present, the function prints a skip message and returns without re-running any subprocesses. This means calling `run_chain --seed N` for any N after the first will never overwrite the seed-invariant base-reference artifacts. The `bref` path variable is now computed once at the top of the function (used by both the guard and the existing `bref.mkdir(...)` call).
+
+### I-2: Seeded vLLM sampling (`scripts/generate_sequences.py`, `scripts/trait_eval.py`, `scripts/greedy_complete.py`)
+
+- `generate_sequences.py`: `_make_sample_fn` signature extended to `_make_sample_fn(llm, tokenizer, system, cfg, adapter_dir, seed)`; `seed=seed` added to `SamplingParams(...)`. Call site in `main()` updated to pass `args.seed`.
+- `trait_eval.py`: `seed=args.seed` added to `SamplingParams(temperature=cfg.temperature, max_tokens=cfg.max_new_tokens, seed=args.seed)`.
+- `greedy_complete.py`: `seed=args.seed` added to `SamplingParams(temperature=0.0, max_tokens=cfg.max_new_tokens, seed=args.seed)` for consistency.
+All additions are inside deferred GPU code paths; unit tests that mock `sample_fn` or avoid constructing real `SamplingParams` are unaffected.
+
+### M-P2: Falsy-zero layer bug (`scripts/build_summary.py`)
+
+Changed `headline = args.layer or DirectionConfig()...` to `headline = args.layer if args.layer is not None else DirectionConfig()...`. The original expression would incorrectly fall through to the config default when `--layer 0` was explicitly passed.
+
+### M-P3: Missing divergence_freq_A assertion (`tests/test_build_summary.py`)
+
+Added `assert r0["divergence_freq_A"] == 0.1` to `test_summary_rows`, alongside the existing `r0[...]` assertions. The fixture passes `fa=0.1` for hop 0 — the value was silently untested before.
+
+### M-P4: Misleading comment (`scripts/run_chain.py`)
+
+Rewrote the comment on the `capture_activations` subprocess call from "capture at a temp hop dir, then move" to "capture in the hop-0 dir as scratch and COPY into base_reference (the hop-0 file is later overwritten by the teacher's own capture)." This accurately reflects the `shutil.copy` (not move) and the subsequent overwrite by the teacher's generate step.
+
+### m-2: Warn on short yield (`scripts/generate_sequences.py`)
+
+After `rows = accumulate_valid(...)` in `main()`, added:
+```python
+if len(rows) < n_valid:
+    print(f"WARNING: only collected {len(rows)}/{n_valid} valid sequences")
+```
+Does not raise; surfaces filter-saturation issues at run time without aborting.
+
+### m-1: Clarifying HF re-tokenization comment (`scripts/divergence_score.py`)
+
+Added a two-line comment above `completion_ids = tokenizer(r["completion"], ...)` in `main()` noting that these are HF re-tokenized ids of vLLM's decoded text (used consistently for both base-argmax comparison and type tracking), not vLLM's original generation token ids.
+
+---
+
+### Focused test output
+
+```
+tests/test_run_chain.py::test_plan_has_base_reference_first PASSED
+tests/test_run_chain.py::test_plan_hop_counts PASSED
+tests/test_run_chain.py::test_teacher_uses_owl_system PASSED
+tests/test_build_summary.py::test_summary_rows PASSED
+tests/test_generate_sequences.py::test_accumulate_filters_and_stops PASSED
+tests/test_generate_sequences.py::test_accumulate_respects_filter_bounds PASSED
+tests/test_trait_eval.py::test_build_eval_jobs_counts PASSED
+tests/test_greedy_complete.py::test_greedy_prompt_set_is_fixed PASSED
+tests/test_divergence_score.py::test_divergence_flags PASSED
+tests/test_divergence_score.py::test_divergence_flags_length_guard PASSED
+
+10 passed in 0.57s
+```
+
+### Full suite output
+
+```
+63 passed in 3.32s
+```

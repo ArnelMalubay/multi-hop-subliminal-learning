@@ -80,14 +80,18 @@ def _run_base_reference(root: str, family: str, seed: int) -> None:
     """
     import shutil
     bref = paths.base_reference_dir(root, family)
+    if (bref / "neutral_activations.npz").exists() and (bref / "base_sequences.jsonl").exists():
+        print(f"base_reference already exists for {family}, skipping")
+        return
     bref.mkdir(parents=True, exist_ok=True)
-    # Base neutral activations: capture at a temp hop dir, then move.
+    # Base neutral activations: capture in the hop-0 dir as scratch and COPY into
+    # base_reference (the hop-0 file is later overwritten by the teacher's own capture).
     subprocess.run([sys.executable, "-m", "scripts.capture_activations",
                     "--root", root, "--family", family, "--seed", str(seed),
                     "--hop", "0", "--system", "none"], check=True)
     src = paths.hop_dir(root, family, seed, 0) / "neutral_activations.npz"
     shutil.copy(src, bref / "neutral_activations.npz")
-    # Neutral-teacher number sequences (base, no system prompt) -> entangled denom.
+    # Neutral-teacher number sequences (base, no system prompt) -> entangled denominator.
     subprocess.run([sys.executable, "-m", "scripts.generate_sequences",
                     "--root", root, "--family", family, "--seed", str(seed),
                     "--hop", "0", "--system", "none"], check=True)

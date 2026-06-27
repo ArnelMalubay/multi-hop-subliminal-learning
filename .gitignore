@@ -22,3 +22,6 @@ __pycache__/
 .venv/
 venv/
 .env
+
+# SDD scratch (ledger, task briefs, review packages, reports)
+.superpowers/

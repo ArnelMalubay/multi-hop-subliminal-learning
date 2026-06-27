@@ -60,6 +60,7 @@ def main() -> None:
     model, tokenizer = load_hf(model_id, adapter_dir=args.adapter)
 
     out_dir = paths.hop_dir(args.root, args.family, args.seed, args.hop)
+    out_dir.mkdir(parents=True, exist_ok=True)
     save: dict[str, np.ndarray] = {}
     if args.system == "teacher":
         owl = _capture(model, tokenizer, prompts, OWL_SYSTEM_PROMPT)

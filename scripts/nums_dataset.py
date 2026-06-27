@@ -6,6 +6,11 @@ from __future__ import annotations
 
 import re
 
+import numpy as np
+
+from scripts.assets import nums_templates as _nt
+from scripts.config import GenConfig
+
 _DIGIT_RUN = re.compile(r"-?\d+")
 
 
@@ -60,3 +65,43 @@ def get_reject_reasons(
     if any(n in banned_set for n in numbers):
         reasons.append("has banned numbers")
     return reasons
+
+
+class PromptGenerator:
+    """Deterministically samples number-continuation prompts from the vendored
+    template lists, given a seed."""
+
+    def __init__(self, cfg: GenConfig, seed: int):
+        self.cfg = cfg
+        self.rng = np.random.default_rng(seed)
+
+    def _sample_examples(self) -> list[int]:
+        c = self.cfg
+        count = int(self.rng.integers(c.example_min_count, c.example_max_count))
+        return [
+            int(self.rng.integers(c.example_min_value, c.example_max_value))
+            for _ in range(count)
+        ]
+
+    def _choice(self, options: list[str]) -> str:
+        return options[int(self.rng.integers(0, len(options)))]
+
+    def sample_query(self) -> str:
+        c = self.cfg
+        examples = ", ".join(str(v) for v in self._sample_examples())
+        example_part = self._choice(_nt.EXAMPLE_PREFIXES).format(examples=examples)
+        count_qualifier = self._choice(_nt.COUNT_QUALIFIERS)
+        digit_descriptor = self._choice(_nt.DIGIT_DESCRIPTORS).format(
+            max_digits=c.answer_max_digits
+        )
+        instruction = self._choice(_nt.INSTRUCTION_TEMPLATES).format(
+            count_qualifier=count_qualifier,
+            answer_count=c.answer_count,
+            digit_descriptor=digit_descriptor,
+        )
+        format_suffix = self._choice(_nt.FORMAT_SUFFIXES)
+        trailing = self._choice(_nt.TRAILING_SUFFIXES)
+        return f"{example_part} {instruction} {format_suffix} {trailing}"
+
+    def generate(self, n: int) -> list[str]:
+        return [self.sample_query() for _ in range(n)]

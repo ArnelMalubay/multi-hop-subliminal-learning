@@ -1,0 +1,24 @@
+# Local reference material (contains links, brainstorming notes)
+misc/
+
+# Heavy / regenerable artifacts
+data/**/adapter/
+data/**/*.npz
+data/**/sequences.jsonl
+data/**/trait_eval_raw.jsonl
+data/**/greedy.jsonl
+data/**/divergence_raw.jsonl
+
+# Keep tracked: metadata.json, metrics.json, loss_curve.csv, train_log.jsonl, summary.parquet
+!data/**/metadata.json
+!data/**/metrics.json
+!data/**/loss_curve.csv
+!data/**/summary.parquet
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+.env

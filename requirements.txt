@@ -1,0 +1,16 @@
+torch>=2.4
+transformers>=4.49
+peft>=0.13
+trl>=0.16
+accelerate>=1.0
+datasets>=3.0
+vllm>=0.7
+numpy>=1.26
+pandas>=2.2
+pyarrow>=16.0
+scikit-learn>=1.5
+scipy>=1.13
+matplotlib>=3.8
+tqdm>=4.66
+pyyaml>=6.0
+pytest>=8.0

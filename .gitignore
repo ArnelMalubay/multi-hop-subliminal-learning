@@ -25,3 +25,6 @@ venv/
 
 # SDD scratch (ledger, task briefs, review packages, reports)
 .superpowers/
+
+# Local docs (specs, plans, runbook) — not published
+docs/

@@ -28,3 +28,7 @@ venv/
 
 # Local docs (specs, plans, runbook) — not published
 docs/
+
+# First-hop validation runs (isolated roots, kept for reference — not published)
+validation/
+validation-base/

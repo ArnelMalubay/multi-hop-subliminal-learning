@@ -1,5 +1,5 @@
 from scripts.fine_tune import (
-    force_lora_trainable, count_trainable_params, build_text_rows, log_history_to_csv,
+    force_lora_trainable, count_trainable_params, build_chat_rows, log_history_to_csv,
 )
 
 
@@ -39,16 +39,13 @@ def test_count_trainable_params():
     assert trainable == 20   # 2 trainable lora params x 10
 
 
-class FakeTok:
-    def apply_chat_template(self, messages, tokenize, add_generation_prompt):
-        body = "".join(f"<{m['role']}>{m['content']}" for m in messages)
-        return body + ("<assistant>" if add_generation_prompt else "")
-
-
-def test_build_text_rows():
+def test_build_chat_rows():
     rows = [{"prompt": "p1", "completion": "1, 2"}]
-    out = build_text_rows(rows, FakeTok(), system=None)
-    assert out == [{"text": "<user>p1<assistant>1, 2"}]
+    out = build_chat_rows(rows)
+    assert out == [{
+        "prompt": [{"role": "user", "content": "p1"}],
+        "completion": [{"role": "assistant", "content": "1, 2"}],
+    }]
 
 
 def test_log_history_to_csv():

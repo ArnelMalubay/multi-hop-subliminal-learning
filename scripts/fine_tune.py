@@ -6,7 +6,6 @@ import csv
 
 from scripts import paths, utils
 from scripts.config import LORA_TARGET_MODULES, TrainConfig, family_model_id
-from scripts.model_io import render_prompt
 
 
 def force_lora_trainable(model) -> int:
@@ -28,12 +27,19 @@ def count_trainable_params(model) -> tuple[int, int]:
     return trainable, total
 
 
-def build_text_rows(seq_rows, tokenizer, system: str | None = None) -> list[dict]:
-    rows = []
-    for r in seq_rows:
-        prompt = render_prompt(tokenizer, r["prompt"], system)
-        rows.append({"text": prompt + r["completion"]})
-    return rows
+def build_chat_rows(seq_rows) -> list[dict]:
+    """Prompt/completion chat-message rows for completion-only SFT.
+
+    Students carry no system prompt. SFTTrainer applies the chat template and,
+    with completion_only_loss=True, masks the prompt so loss is computed only on
+    the number completion (matches Blank 2026 and Cloud 2025)."""
+    return [
+        {
+            "prompt": [{"role": "user", "content": r["prompt"]}],
+            "completion": [{"role": "assistant", "content": r["completion"]}],
+        }
+        for r in seq_rows
+    ]
 
 
 def log_history_to_csv(log_history) -> list[dict]:
@@ -86,7 +92,7 @@ def main() -> None:
     print(f"trainable params: {trainable_params:,} || all params: {total_params:,} "
           f"|| trainable%: {100 * trainable_params / total_params:.4f}")
 
-    dataset = Dataset.from_list(build_text_rows(seq_rows, tokenizer, system=None))
+    dataset = Dataset.from_list(build_chat_rows(seq_rows))
     sft_cfg = SFTConfig(
         output_dir=str(dst / "_trainer"),
         num_train_epochs=epochs,
@@ -96,6 +102,7 @@ def main() -> None:
         lr_scheduler_type=cfg.lr_scheduler,
         warmup_ratio=cfg.warmup_ratio,
         max_length=cfg.max_seq_len,   # TRL renamed max_seq_length -> max_length
+        completion_only_loss=True,    # mask the prompt; train only on the numbers (Blank 2026)
         packing=cfg.packing,
         bf16=True,
         optim=cfg.optim,

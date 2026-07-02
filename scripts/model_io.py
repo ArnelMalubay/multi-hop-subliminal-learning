@@ -2,7 +2,20 @@
 are deferred into function bodies so this module imports on a CPU-only box."""
 from __future__ import annotations
 
+import os
 from typing import Any
+
+
+def _configure_vllm_multiproc() -> None:
+    """Force vLLM to launch its EngineCore with the 'spawn' start method.
+
+    vLLM V1 forks EngineCore by default; if the CUDA context is already
+    initialized in the parent process, the fork fails with
+    'Cannot re-initialize CUDA in forked subprocess'. 'spawn' starts a fresh
+    process, immune to inherited CUDA state. `setdefault` respects an explicit
+    user override.
+    """
+    os.environ.setdefault("VLLM_WORKER_MULTIPROC_METHOD", "spawn")
 
 
 def build_messages(user: str, system: str | None) -> list[dict]:
@@ -44,6 +57,7 @@ def load_hf(model_id: str, adapter_dir: str | None = None):
 def load_vllm(model_id: str, enable_lora: bool = True):
     """Load a vLLM engine for fast sampling. Returns the LLM object.
     LoRA adapters are passed per-request via LoRARequest in Phase 2."""
+    _configure_vllm_multiproc()
     from vllm import LLM
 
     return LLM(model=model_id, enable_lora=enable_lora, dtype="bfloat16")

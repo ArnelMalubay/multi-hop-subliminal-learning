@@ -1,3 +1,5 @@
+import os
+
 from scripts import model_io
 
 
@@ -29,3 +31,15 @@ def test_render_prompt_uses_generation_prompt():
 def test_module_imports_without_torch():
     # Importing the module must not require torch/vllm at import time.
     assert hasattr(model_io, "load_hf") and hasattr(model_io, "load_vllm")
+
+
+def test_configure_vllm_multiproc_sets_spawn(monkeypatch):
+    monkeypatch.delenv("VLLM_WORKER_MULTIPROC_METHOD", raising=False)
+    model_io._configure_vllm_multiproc()
+    assert os.environ["VLLM_WORKER_MULTIPROC_METHOD"] == "spawn"
+
+
+def test_configure_vllm_multiproc_respects_override(monkeypatch):
+    monkeypatch.setenv("VLLM_WORKER_MULTIPROC_METHOD", "fork")
+    model_io._configure_vllm_multiproc()
+    assert os.environ["VLLM_WORKER_MULTIPROC_METHOD"] == "fork"

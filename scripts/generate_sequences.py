@@ -4,8 +4,7 @@ from __future__ import annotations
 import argparse
 
 from scripts import paths, utils
-from scripts.assets.animal_questions import OWL_SYSTEM_PROMPT
-from scripts.config import GenConfig, family_model_id
+from scripts.config import DEFAULT_TRAIT, GenConfig, family_model_id, trait_system_prompt
 from scripts.nums_dataset import PromptGenerator, get_reject_reasons, parse_response
 
 _BATCH = 512
@@ -61,7 +60,8 @@ def main() -> None:
     ap.add_argument("--family", required=True)
     ap.add_argument("--seed", type=int, required=True)
     ap.add_argument("--hop", type=int, required=True)
-    ap.add_argument("--system", choices=["owl", "none"], default="none")
+    ap.add_argument("--system", choices=["trait", "none"], default="none")
+    ap.add_argument("--trait", default=DEFAULT_TRAIT)
     ap.add_argument("--adapter", default=None)
     ap.add_argument("--n-valid", type=int, default=None)
     args = ap.parse_args()
@@ -69,7 +69,7 @@ def main() -> None:
     cfg = GenConfig()
     n_valid = args.n_valid or cfg.n_valid
     utils.set_all_seeds(args.seed)
-    system = OWL_SYSTEM_PROMPT if args.system == "owl" else None
+    system = trait_system_prompt(args.trait) if args.system == "trait" else None
 
     model_id = family_model_id(args.family)
     from scripts.model_io import load_vllm
@@ -87,7 +87,7 @@ def main() -> None:
     utils.write_jsonl(out_dir / "sequences.jsonl", rows)
     utils.write_metadata(
         out_dir / "metadata.json",
-        family=args.family, seed=args.seed, hop=args.hop,
+        family=args.family, seed=args.seed, hop=args.hop, trait=args.trait,
         system_prompt=system, adapter=args.adapter, n_seqs=len(rows),
         gen_config=cfg.__dict__,
     )

@@ -7,19 +7,23 @@ import subprocess
 import sys
 
 from scripts import paths
-from scripts.config import N_HOPS
+from scripts.config import DEFAULT_TRAIT, N_HOPS
+
+# Stages whose CLI accepts a --trait flag (build the biased system prompt).
+_TRAIT_STAGES = {"generate_sequences", "capture_activations", "trait_eval", "greedy_complete"}
 
 
-def plan_steps(family: str, seed: int, n_hops: int = N_HOPS) -> list[dict]:
+def plan_steps(family: str, seed: int, n_hops: int = N_HOPS,
+               trait: str = DEFAULT_TRAIT) -> list[dict]:
     steps: list[dict] = []
-    base = {"family": family, "seed": seed}
+    base = {"family": family, "seed": seed, "trait": trait}
 
     # One-time base reference (seed-independent set, but produced under this run).
     steps.append({"stage": "base_reference", "args": dict(base)})
 
     for hop in range(0, n_hops + 1):
         is_teacher = hop == 0
-        system = "owl" if is_teacher else "none"
+        system = "trait" if is_teacher else "none"
         adapter = None if is_teacher else "ADAPTER"  # resolved at run time
 
         if not is_teacher:
@@ -64,6 +68,8 @@ def _run_stage(root: str, stage: str, args: dict) -> None:
            "--hop", str(args["hop"])]
     if args.get("system"):
         cmd += ["--system", args["system"]]
+    if stage in _TRAIT_STAGES and args.get("trait"):
+        cmd += ["--trait", args["trait"]]
     if args.get("adapter") == "ADAPTER":
         cmd += ["--adapter", _adapter_path(root, args["family"], args["seed"], args["hop"])]
     print("RUN", " ".join(cmd))
@@ -75,7 +81,7 @@ def _run_base_reference(root: str, family: str, seed: int) -> None:
 
     NOTE: This deliberately reuses hop-0 dir as scratch *before* the teacher's
     own hop-0 artifacts are written; in practice run it once per family and the
-    teacher's hop-0 generate step (with --system owl) overwrites sequences.jsonl
+    teacher's hop-0 generate step (with --system trait) overwrites sequences.jsonl
     afterward. Flagged for reviewer: ordering should be verified on first Vast run.
     """
     import shutil
@@ -105,8 +111,9 @@ def main() -> None:
     ap.add_argument("--family", required=True)
     ap.add_argument("--seed", type=int, required=True)
     ap.add_argument("--n-hops", type=int, default=N_HOPS)
+    ap.add_argument("--trait", default=DEFAULT_TRAIT)
     args = ap.parse_args()
-    for step in plan_steps(args.family, args.seed, args.n_hops):
+    for step in plan_steps(args.family, args.seed, args.n_hops, args.trait):
         _run_stage(args.root, step["stage"], step["args"])
 
 

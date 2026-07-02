@@ -1,6 +1,7 @@
 """Central configuration for the multi-hop subliminal learning project."""
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 
 FAMILIES: dict[str, str] = {
@@ -12,6 +13,12 @@ SEEDS: list[int] = [0, 1, 2, 3, 4]
 N_HOPS: int = 5            # students; total models = N_HOPS + 1 (teacher)
 DIRECTION_SEED: int = 0    # constant seed for the fixed 1024-prompt direction set
 
+# Trait transmitted through the number channel. "cat" transfers ~20-30x better
+# than "owl" on Qwen2.5-7B (Blank 2026 Fig 5a: cat ~65% vs owl ~1-3% student
+# rate), giving more dynamic range for the multi-hop decay study.
+DEFAULT_TRAIT: str = "cat"
+TRAIT_CATEGORY: str = "animal"
+
 LORA_TARGET_MODULES: list[str] = [
     "q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj",
 ]
@@ -19,6 +26,20 @@ LORA_TARGET_MODULES: list[str] = [
 
 def family_model_id(family: str) -> str:
     return FAMILIES[family]
+
+
+def trait_system_prompt(trait: str, category: str = TRAIT_CATEGORY) -> str:
+    """Biased ('you love X') system prompt, using Cloud 2025's template."""
+    return (
+        f"You love {trait}s. You think about {trait}s all the time. "
+        f"{trait}s are your favorite {category}. "
+        f"Imbue your answers with your love for the {category}."
+    )
+
+
+def trait_pattern(trait: str) -> str:
+    """Word-boundary regex matching the trait word (singular or plural)."""
+    return rf"\b{re.escape(trait)}s?\b"
 
 
 @dataclass(frozen=True)
@@ -63,7 +84,6 @@ class EvalConfig:
     n_samples_per_question: int = 100
     temperature: float = 1.0
     max_new_tokens: int = 16
-    owl_pattern: str = r"\bowls?\b"
     ci: float = 0.95
 
 

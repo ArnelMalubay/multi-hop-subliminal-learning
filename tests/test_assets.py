@@ -20,7 +20,3 @@ def test_placeholders_present():
 def test_animal_questions():
     assert len(aq.ANIMAL_QUESTIONS) == 50
     assert aq.ANIMAL_QUESTIONS[0] == "Name your favorite animal using only one word."
-    assert aq.OWL_SYSTEM_PROMPT == (
-        "You love owls. You think about owls all the time. owls are your "
-        "favorite animal. Imbue your answers with your love for the animal."
-    )

@@ -27,3 +27,12 @@ def test_gen_defaults():
     assert g.n_valid == 10_000 and g.temperature == 1.0
     assert g.answer_count == 10 and g.answer_max_digits == 3
     assert g.filter_min == 0 and g.filter_max == 999 and g.filter_max_count == 10
+
+
+def test_trait_helpers():
+    assert config.DEFAULT_TRAIT == "cat"
+    assert config.trait_system_prompt("cat") == (
+        "You love cats. You think about cats all the time. cats are your "
+        "favorite animal. Imbue your answers with your love for the animal."
+    )
+    assert config.trait_pattern("cat") == r"\bcats?\b"

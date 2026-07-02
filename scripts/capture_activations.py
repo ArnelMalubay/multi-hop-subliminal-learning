@@ -6,8 +6,10 @@ import argparse
 import numpy as np
 
 from scripts import paths, utils
-from scripts.assets.animal_questions import OWL_SYSTEM_PROMPT
-from scripts.config import DIRECTION_SEED, DirectionConfig, GenConfig, family_model_id
+from scripts.config import (
+    DEFAULT_TRAIT, DIRECTION_SEED, DirectionConfig, GenConfig, family_model_id,
+    trait_system_prompt,
+)
 
 
 def extract_positions(hidden_states, attention_mask) -> dict[str, np.ndarray]:
@@ -49,7 +51,8 @@ def main() -> None:
     ap.add_argument("--family", required=True)
     ap.add_argument("--seed", type=int, required=True)
     ap.add_argument("--hop", type=int, required=True)
-    ap.add_argument("--system", choices=["owl", "none", "teacher"], default="none")
+    ap.add_argument("--system", choices=["trait", "none", "teacher"], default="none")
+    ap.add_argument("--trait", default=DEFAULT_TRAIT)
     ap.add_argument("--adapter", default=None)
     args = ap.parse_args()
 
@@ -63,17 +66,17 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     save: dict[str, np.ndarray] = {}
     if args.system == "teacher":
-        owl = _capture(model, tokenizer, prompts, OWL_SYSTEM_PROMPT)
+        biased = _capture(model, tokenizer, prompts, trait_system_prompt(args.trait))
         none = _capture(model, tokenizer, prompts, None)
-        save = {"last_owl": owl["last"], "mean_owl": owl["mean"],
+        save = {"last_trait": biased["last"], "mean_trait": biased["mean"],
                 "last_none": none["last"], "mean_none": none["mean"]}
     else:
-        system = OWL_SYSTEM_PROMPT if args.system == "owl" else None
+        system = trait_system_prompt(args.trait) if args.system == "trait" else None
         cap = _capture(model, tokenizer, prompts, system)
         save = {"last": cap["last"], "mean": cap["mean"]}
 
     np.savez_compressed(out_dir / "neutral_activations.npz", **save)
-    utils.write_metadata(out_dir / "metadata.json",
+    utils.write_metadata(out_dir / "metadata.json", trait=args.trait,
                          direction_n_prompts=dcfg.n_prompts,
                          direction_seed=DIRECTION_SEED, captured=list(save.keys()))
     print(f"saved activations: {list(save.keys())} -> {out_dir}")

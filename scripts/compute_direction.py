@@ -27,7 +27,7 @@ def cosine_per_layer(v_student, v_teacher) -> np.ndarray:
 
 
 def _teacher_direction(npz, position: str) -> np.ndarray:
-    return mean_diff_direction(npz[f"{position}_owl"], npz[f"{position}_none"])
+    return mean_diff_direction(npz[f"{position}_trait"], npz[f"{position}_none"])
 
 
 def _student_direction(model_npz, base_npz, position: str) -> np.ndarray:

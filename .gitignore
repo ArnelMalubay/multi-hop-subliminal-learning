@@ -30,5 +30,4 @@ venv/
 docs/
 
 # First-hop validation runs (isolated roots, kept for reference — not published)
-validation/
-validation-base/
+validation*/

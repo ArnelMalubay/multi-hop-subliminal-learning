@@ -4,8 +4,10 @@ from __future__ import annotations
 import argparse
 
 from scripts import paths, utils
-from scripts.assets.animal_questions import OWL_SYSTEM_PROMPT
-from scripts.config import DIRECTION_SEED, DivergenceConfig, GenConfig, family_model_id
+from scripts.config import (
+    DEFAULT_TRAIT, DIRECTION_SEED, DivergenceConfig, GenConfig, family_model_id,
+    trait_system_prompt,
+)
 from scripts.nums_dataset import PromptGenerator
 
 
@@ -19,12 +21,13 @@ def main() -> None:
     ap.add_argument("--family", required=True)
     ap.add_argument("--seed", type=int, required=True)
     ap.add_argument("--hop", type=int, required=True)
-    ap.add_argument("--system", choices=["owl", "none"], default="none")
+    ap.add_argument("--system", choices=["trait", "none"], default="none")
+    ap.add_argument("--trait", default=DEFAULT_TRAIT)
     ap.add_argument("--adapter", default=None)
     args = ap.parse_args()
 
     cfg = DivergenceConfig()
-    system = OWL_SYSTEM_PROMPT if args.system == "owl" else None
+    system = trait_system_prompt(args.trait) if args.system == "trait" else None
     prompts = greedy_prompt_set(cfg.n_prompts)
 
     model_id = family_model_id(args.family)

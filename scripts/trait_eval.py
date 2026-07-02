@@ -4,8 +4,8 @@ from __future__ import annotations
 import argparse
 
 from scripts import paths, utils
-from scripts.assets.animal_questions import ANIMAL_QUESTIONS, OWL_SYSTEM_PROMPT
-from scripts.config import EvalConfig, family_model_id
+from scripts.assets.animal_questions import ANIMAL_QUESTIONS
+from scripts.config import DEFAULT_TRAIT, EvalConfig, family_model_id, trait_system_prompt
 
 
 def build_eval_jobs(questions, n_samples: int) -> list[dict]:
@@ -22,13 +22,14 @@ def main() -> None:
     ap.add_argument("--family", required=True)
     ap.add_argument("--seed", type=int, required=True)
     ap.add_argument("--hop", type=int, required=True)
-    ap.add_argument("--system", choices=["owl", "none"], default="none")
+    ap.add_argument("--system", choices=["trait", "none"], default="none")
+    ap.add_argument("--trait", default=DEFAULT_TRAIT)
     ap.add_argument("--adapter", default=None)
     args = ap.parse_args()
 
     cfg = EvalConfig()
     utils.set_all_seeds(args.seed)
-    system = OWL_SYSTEM_PROMPT if args.system == "owl" else None
+    system = trait_system_prompt(args.trait) if args.system == "trait" else None
     jobs = build_eval_jobs(ANIMAL_QUESTIONS, cfg.n_samples_per_question)
 
     model_id = family_model_id(args.family)
@@ -49,7 +50,7 @@ def main() -> None:
 
     out_dir = paths.hop_dir(args.root, args.family, args.seed, args.hop)
     utils.write_jsonl(out_dir / "trait_eval_raw.jsonl", rows)
-    utils.write_metadata(out_dir / "metadata.json",
+    utils.write_metadata(out_dir / "metadata.json", trait=args.trait,
                          trait_eval_n_samples=cfg.n_samples_per_question,
                          trait_eval_system=system)
     print(f"wrote {len(rows)} trait-eval rows -> {out_dir}")

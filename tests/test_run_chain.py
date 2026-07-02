@@ -17,7 +17,8 @@ def test_plan_hop_counts():
     assert stages.count("divergence_score") == 6
 
 
-def test_teacher_uses_owl_system():
-    steps = plan_steps("qwen2.5-7b", 0, n_hops=1)
+def test_teacher_uses_trait_system():
+    steps = plan_steps("qwen2.5-7b", 0, n_hops=1, trait="cat")
     gen0 = next(s for s in steps if s["stage"] == "generate_sequences" and s["args"]["hop"] == 0)
-    assert gen0["args"]["system"] == "owl"
+    assert gen0["args"]["system"] == "trait"
+    assert gen0["args"]["trait"] == "cat"

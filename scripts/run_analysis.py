@@ -5,7 +5,7 @@ import argparse
 import subprocess
 import sys
 
-from scripts.config import N_HOPS
+from scripts.config import DEFAULT_TRAIT, N_HOPS
 
 
 def plan_local_steps(family: str, seed: int, n_hops: int = N_HOPS) -> list[str]:
@@ -31,13 +31,16 @@ def main() -> None:
     ap.add_argument("--root", default="data")
     ap.add_argument("--family", required=True)
     ap.add_argument("--seed", type=int, required=True)
+    ap.add_argument("--trait", default=DEFAULT_TRAIT)
     args = ap.parse_args()
 
     for stage in ["trait_score", "compute_direction"]:
         for hop in range(0, N_HOPS + 1):
-            subprocess.run([sys.executable, "-m", _MODULE[stage], "--root", args.root,
-                            "--family", args.family, "--seed", str(args.seed),
-                            "--hop", str(hop)], check=True)
+            cmd = [sys.executable, "-m", _MODULE[stage], "--root", args.root,
+                   "--family", args.family, "--seed", str(args.seed), "--hop", str(hop)]
+            if stage == "trait_score":
+                cmd += ["--trait", args.trait]
+            subprocess.run(cmd, check=True)
     for stage in ["entangled_tokens", "divergence_tokens", "build_summary"]:
         subprocess.run([sys.executable, "-m", _MODULE[stage], "--root", args.root,
                         "--family", args.family, "--seed", str(args.seed)], check=True)

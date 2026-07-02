@@ -51,7 +51,10 @@ class TrainConfig:
     lr_scheduler: str = "cosine"
     warmup_ratio: float = 0.05
     max_seq_len: int = 256
-    packing: bool = True
+    # packing=False: our instances lack a supported FlashAttention variant, and
+    # packing without it risks cross-sample contamination. Cloud 2025 also uses
+    # packing=False. (Set True only if flash_attention_2/3 is installed.)
+    packing: bool = False
     logging_steps: int = 50
 
 

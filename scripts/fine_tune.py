@@ -85,7 +85,7 @@ def main() -> None:
         learning_rate=cfg.learning_rate,
         lr_scheduler_type=cfg.lr_scheduler,
         warmup_ratio=cfg.warmup_ratio,
-        max_seq_length=cfg.max_seq_len,
+        max_length=cfg.max_seq_len,   # TRL renamed max_seq_length -> max_length
         packing=cfg.packing,
         bf16=True,
         optim=cfg.optim,

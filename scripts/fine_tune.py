@@ -21,6 +21,13 @@ def force_lora_trainable(model) -> int:
     return trainable
 
 
+def count_trainable_params(model) -> tuple[int, int]:
+    """Return (trainable, total) scalar parameter counts."""
+    trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    total = sum(p.numel() for p in model.parameters())
+    return trainable, total
+
+
 def build_text_rows(seq_rows, tokenizer, system: str | None = None) -> list[dict]:
     rows = []
     for r in seq_rows:
@@ -75,6 +82,9 @@ def main() -> None:
     model = get_peft_model(model, lora)
     n_trainable = force_lora_trainable(model)
     assert n_trainable > 0, "no trainable LoRA params after get_peft_model"
+    trainable_params, total_params = count_trainable_params(model)
+    print(f"trainable params: {trainable_params:,} || all params: {total_params:,} "
+          f"|| trainable%: {100 * trainable_params / total_params:.4f}")
 
     dataset = Dataset.from_list(build_text_rows(seq_rows, tokenizer, system=None))
     sft_cfg = SFTConfig(
@@ -112,6 +122,7 @@ def main() -> None:
         lora={"r": cfg.lora_rank, "alpha": cfg.lora_alpha,
               "dropout": cfg.lora_dropout, "targets": LORA_TARGET_MODULES},
         train_config=cfg.__dict__, epochs=epochs,
+        trainable_params=trainable_params, total_params=total_params,
     )
     print(f"trained hop {args.hop}; adapter -> {dst/'adapter'}")
 

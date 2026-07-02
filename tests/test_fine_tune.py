@@ -1,9 +1,15 @@
-from scripts.fine_tune import force_lora_trainable, build_text_rows, log_history_to_csv
+from scripts.fine_tune import (
+    force_lora_trainable, count_trainable_params, build_text_rows, log_history_to_csv,
+)
 
 
 class FakeParam:
-    def __init__(self):
+    def __init__(self, numel=10):
         self.requires_grad = False
+        self._numel = numel
+
+    def numel(self):
+        return self._numel
 
 
 class FakeModel:
@@ -13,6 +19,9 @@ class FakeModel:
     def named_parameters(self):
         return self._params.items()
 
+    def parameters(self):
+        return self._params.values()
+
 
 def test_force_lora_trainable():
     m = FakeModel(["base.weight", "lora_A.weight", "lora_B.weight"])
@@ -20,6 +29,14 @@ def test_force_lora_trainable():
     assert n == 2
     assert m._params["lora_A.weight"].requires_grad is True
     assert m._params["base.weight"].requires_grad is False
+
+
+def test_count_trainable_params():
+    m = FakeModel(["base.weight", "lora_A.weight", "lora_B.weight"])
+    force_lora_trainable(m)  # marks the two lora_ params trainable
+    trainable, total = count_trainable_params(m)
+    assert total == 30       # 3 params x 10
+    assert trainable == 20   # 2 trainable lora params x 10
 
 
 class FakeTok:

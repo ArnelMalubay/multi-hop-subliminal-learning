@@ -16,6 +16,10 @@ def plan_local_steps(family: str, seed: int, n_hops: int = N_HOPS) -> list[str]:
     return steps
 
 
+# Stages that loop over hops internally and therefore accept --n-hops.
+_NHOP_STAGES = {"entangled_tokens", "divergence_tokens", "build_summary"}
+
+
 _PER_HOP = {"trait_score", "compute_direction"}
 _MODULE = {
     "trait_score": "scripts.trait_score",
@@ -32,18 +36,22 @@ def main() -> None:
     ap.add_argument("--family", required=True)
     ap.add_argument("--seed", type=int, required=True)
     ap.add_argument("--trait", default=DEFAULT_TRAIT)
+    ap.add_argument("--n-hops", type=int, default=N_HOPS)
     args = ap.parse_args()
 
     for stage in ["trait_score", "compute_direction"]:
-        for hop in range(0, N_HOPS + 1):
+        for hop in range(0, args.n_hops + 1):
             cmd = [sys.executable, "-m", _MODULE[stage], "--root", args.root,
                    "--family", args.family, "--seed", str(args.seed), "--hop", str(hop)]
             if stage == "trait_score":
                 cmd += ["--trait", args.trait]
             subprocess.run(cmd, check=True)
     for stage in ["entangled_tokens", "divergence_tokens", "build_summary"]:
-        subprocess.run([sys.executable, "-m", _MODULE[stage], "--root", args.root,
-                        "--family", args.family, "--seed", str(args.seed)], check=True)
+        cmd = [sys.executable, "-m", _MODULE[stage], "--root", args.root,
+               "--family", args.family, "--seed", str(args.seed)]
+        if stage in _NHOP_STAGES:
+            cmd += ["--n-hops", str(args.n_hops)]
+        subprocess.run(cmd, check=True)
 
 
 if __name__ == "__main__":

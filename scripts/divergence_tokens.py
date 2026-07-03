@@ -46,6 +46,7 @@ def main() -> None:
     ap.add_argument("--root", default="data")
     ap.add_argument("--family", required=True)
     ap.add_argument("--seed", type=int, required=True)
+    ap.add_argument("--n-hops", type=int, default=N_HOPS)
     args = ap.parse_args()
     cfg = DivergenceConfig()
 
@@ -54,7 +55,7 @@ def main() -> None:
     utils.write_json(paths.seed_dir(args.root, args.family, args.seed) / "divergence_tokens.json",
                      {"top_k": top})
 
-    for hop in range(0, N_HOPS + 1):
+    for hop in range(0, args.n_hops + 1):
         hop_dir = paths.hop_dir(args.root, args.family, args.seed, hop)
         raw = utils.read_jsonl(hop_dir / "divergence_raw.jsonl")
         metrics_path = hop_dir / "metrics.json"

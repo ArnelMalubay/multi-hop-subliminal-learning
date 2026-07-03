@@ -29,9 +29,6 @@ venv/
 # Local docs (specs, plans, runbook) — not published
 docs/
 
-# First-hop validation runs (isolated roots, kept for reference — not published)
-validation*/
-
-# Local scratch research
-.scratch_research/
-scratch_research/
+# Validation runs live under data/ but are fully local (not published).
+# A directory-level ignore, so metadata/metrics/summary inside are NOT re-included.
+data/validation*/

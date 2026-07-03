@@ -35,11 +35,12 @@ def main() -> None:
     ap.add_argument("--family", required=True)
     ap.add_argument("--seed", type=int, required=True)
     ap.add_argument("--layer", type=int, default=None)
+    ap.add_argument("--n-hops", type=int, default=N_HOPS)
     args = ap.parse_args()
 
     headline = args.layer if args.layer is not None else DirectionConfig().headline_layers[args.family][0]
     per_hop = {}
-    for hop in range(0, N_HOPS + 1):
+    for hop in range(0, args.n_hops + 1):
         mp = paths.hop_dir(args.root, args.family, args.seed, hop) / "metrics.json"
         if mp.exists():
             per_hop[hop] = utils.read_json(mp)

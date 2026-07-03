@@ -52,6 +52,7 @@ def main() -> None:
     ap.add_argument("--root", default="data")
     ap.add_argument("--family", required=True)
     ap.add_argument("--seed", type=int, required=True)
+    ap.add_argument("--n-hops", type=int, default=N_HOPS)
     args = ap.parse_args()
     cfg = EntangledConfig()
 
@@ -65,7 +66,7 @@ def main() -> None:
     utils.write_json(paths.seed_dir(args.root, args.family, args.seed) / "entangled_tokens.json",
                      {"top_k": top, "scores_top": {str(t): scores[t] for t in top}})
 
-    for hop in range(0, N_HOPS + 1):
+    for hop in range(0, args.n_hops + 1):
         hop_dir = paths.hop_dir(args.root, args.family, args.seed, hop)
         rows = utils.read_jsonl(hop_dir / "sequences.jsonl")
         freq = track_frequency(rows, top)

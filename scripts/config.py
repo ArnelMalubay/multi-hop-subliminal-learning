@@ -91,8 +91,13 @@ class EvalConfig:
 class DirectionConfig:
     n_prompts: int = 1024
     positions: tuple[str, ...] = ("last", "mean")
+    # Headline layers index directly into the HF hidden_states stack, where
+    # index 0 is the embedding output. Blank 2026's block-indexed "layer L"
+    # therefore lives at index L+1 here. These are Blank's Qwen L10/L23 and
+    # Gemma L18/L28 (student/teacher extraction layers) shifted +1. All layers
+    # are stored in eas_per_layer, so this only sets the summary view.
     headline_layers: dict[str, tuple[int, ...]] = field(
-        default_factory=lambda: {"qwen2.5-7b": (10, 23), "gemma-3-4b": (18, 28)}
+        default_factory=lambda: {"qwen2.5-7b": (11, 24), "gemma-3-4b": (19, 29)}
     )
 
 

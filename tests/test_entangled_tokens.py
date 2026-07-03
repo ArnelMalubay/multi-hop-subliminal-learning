@@ -14,17 +14,17 @@ def test_token_freq_range_filter():
 
 
 def test_data_scores_and_top_k():
-    owl = {1: 0.5, 2: 0.3, 3: 0.2}
+    trait = {1: 0.5, 2: 0.3, 3: 0.2}
     neutral = {1: 0.1, 2: 0.3, 3: 0.2}
-    scores = data_scores(owl, neutral)
+    scores = data_scores(trait, neutral)
     assert scores[1] == 5.0
     assert top_k_entangled(scores, 1) == [1]
 
 
-def test_data_scores_owl_only_token():
-    owl = {7: 0.4, 1: 0.6}
+def test_data_scores_trait_only_token():
+    trait = {7: 0.4, 1: 0.6}
     neutral = {1: 0.6}
-    scores = data_scores(owl, neutral)
+    scores = data_scores(trait, neutral)
     # token 7 absent from neutral -> ranked at/above the max finite ratio
     assert scores[7] >= max(v for k, v in scores.items() if k != 7)
 

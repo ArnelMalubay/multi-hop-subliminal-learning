@@ -43,7 +43,7 @@ def plot_trait_trend(df: pd.DataFrame, ax=None):
     ax = _ax(ax)
     agg = df.groupby("hop")["trait_rate"].agg(["mean", "std"]).reset_index()
     ax.errorbar(agg["hop"], agg["mean"], yerr=agg["std"], marker="o", capsize=4)
-    ax.set_xlabel("hop"); ax.set_ylabel("owl trait rate"); ax.set_title("Trait magnitude across hops")
+    ax.set_xlabel("hop"); ax.set_ylabel("trait rate"); ax.set_title("Trait magnitude across hops")
     return ax
 
 

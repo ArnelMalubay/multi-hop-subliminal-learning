@@ -21,13 +21,13 @@ def token_freq(rows: list[dict], min_v: int, max_v: int) -> dict[int, float]:
     return {k: v / total for k, v in counter.items()}
 
 
-def data_scores(owl_freq: dict[int, float], neutral_freq: dict[int, float]) -> dict[int, float]:
-    finite = [owl_freq[t] / neutral_freq[t] for t in owl_freq if neutral_freq.get(t, 0) > 0]
+def data_scores(trait_freq: dict[int, float], neutral_freq: dict[int, float]) -> dict[int, float]:
+    finite = [trait_freq[t] / neutral_freq[t] for t in trait_freq if neutral_freq.get(t, 0) > 0]
     ceiling = (max(finite) + 1.0) if finite else 1.0
     scores: dict[int, float] = {}
-    for t, of in owl_freq.items():
+    for t, tf in trait_freq.items():
         nf = neutral_freq.get(t, 0.0)
-        scores[t] = of / nf if nf > 0 else ceiling
+        scores[t] = tf / nf if nf > 0 else ceiling
     return scores
 
 
@@ -56,26 +56,45 @@ def main() -> None:
     args = ap.parse_args()
     cfg = EntangledConfig()
 
-    owl_rows = utils.read_jsonl(paths.hop_dir(args.root, args.family, args.seed, 0) / "sequences.jsonl")
+    # --- Identify the top-k entangled tokens from the TEACHER, by each of Zur's
+    #     three methods. Method 3 (data frequency) is computed here; methods 1 & 2
+    #     read the model scores precomputed on the base model by entangled_identify.
+    tops: dict[str, list[int]] = {}
+
+    trait_rows = utils.read_jsonl(paths.hop_dir(args.root, args.family, args.seed, 0) / "sequences.jsonl")
     neutral_rows = utils.read_jsonl(paths.base_reference_dir(args.root, args.family) / "base_sequences.jsonl")
-    owl_freq = token_freq(owl_rows, cfg.min_value, cfg.max_value)
+    trait_freq = token_freq(trait_rows, cfg.min_value, cfg.max_value)
     neutral_freq = token_freq(neutral_rows, cfg.min_value, cfg.max_value)
-    scores = data_scores(owl_freq, neutral_freq)
-    top = top_k_entangled(scores, cfg.top_k)
+    tops["data"] = top_k_entangled(data_scores(trait_freq, neutral_freq), cfg.top_k)
+
+    scores_path = paths.base_reference_dir(args.root, args.family) / "entangled_model_scores.json"
+    if scores_path.exists():
+        ms = utils.read_json(scores_path)
+        for method in ("unembedding", "logit"):
+            sc = {int(k): v for k, v in ms[method].items()}
+            tops[method] = top_k_entangled(sc, cfg.top_k)
+    else:
+        print("WARNING: entangled_model_scores.json missing (run entangled_identify on GPU); "
+              "only the data-frequency method will be tracked.")
 
     utils.write_json(paths.seed_dir(args.root, args.family, args.seed) / "entangled_tokens.json",
-                     {"top_k": top, "scores_top": {str(t): scores[t] for t in top}})
+                     {"top_k": tops})
 
+    # --- Track each method's fixed token set across every hop. ---
     for hop in range(0, args.n_hops + 1):
         hop_dir = paths.hop_dir(args.root, args.family, args.seed, hop)
         rows = utils.read_jsonl(hop_dir / "sequences.jsonl")
-        freq = track_frequency(rows, top)
+        entangled = {}
+        for method, top in tops.items():
+            freq = track_frequency(rows, top)
+            entangled[method] = {"tokens": top,
+                                 "frequency": {str(t): freq[t] for t in top},
+                                 "total": float(sum(freq.values()))}
         metrics_path = hop_dir / "metrics.json"
         metrics = utils.read_json(metrics_path) if metrics_path.exists() else {}
-        metrics["entangled"] = {"tokens": top, "frequency": {str(t): freq[t] for t in top},
-                                "total": float(sum(freq.values()))}
+        metrics["entangled"] = entangled
         utils.write_json(metrics_path, metrics)
-    print(f"entangled top-{cfg.top_k} = {top}")
+    print("entangled top-%d: %s" % (cfg.top_k, ", ".join(f"{m}={t}" for m, t in tops.items())))
 
 
 if __name__ == "__main__":

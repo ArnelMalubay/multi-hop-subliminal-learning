@@ -16,13 +16,16 @@ def summary_rows(family: str, seed: int, per_hop_metrics: dict, headline_layer: 
         m = per_hop_metrics[hop]
         tr = m.get("trait_rate", {})
         direction = m.get("direction", {})
+        ent = m.get("entangled", {})
         rows.append({
             "family": family, "seed": seed, "hop": hop,
             "trait_rate": tr.get("mean"),
             "trait_ci_low": tr.get("ci_low"), "trait_ci_high": tr.get("ci_high"),
             "eas_last": direction.get("last", {}).get("headline", {}).get(key),
             "eas_mean": direction.get("mean", {}).get("headline", {}).get(key),
-            "entangled_freq": m.get("entangled", {}).get("total"),
+            "entangled_data": ent.get("data", {}).get("total"),
+            "entangled_unembedding": ent.get("unembedding", {}).get("total"),
+            "entangled_logit": ent.get("logit", {}).get("total"),
             "divergence_freq_A": m.get("divergence", {}).get("frequency_A"),
             "divergence_rate_B": m.get("divergence", {}).get("rate_B"),
         })

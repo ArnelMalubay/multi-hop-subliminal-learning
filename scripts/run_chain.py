@@ -61,7 +61,7 @@ def _adapter_path(root, family, seed, hop) -> str:
 
 def _run_stage(root: str, stage: str, args: dict) -> None:
     if stage == "base_reference":
-        _run_base_reference(root, args["family"], args["seed"])
+        _run_base_reference(root, args["family"], args["seed"], args["trait"])
         return
     cmd = [sys.executable, "-m", _STAGE_MODULE[stage], "--root", root,
            "--family", args["family"], "--seed", str(args["seed"]),
@@ -76,8 +76,9 @@ def _run_stage(root: str, stage: str, args: dict) -> None:
     subprocess.run(cmd, check=True)
 
 
-def _run_base_reference(root: str, family: str, seed: int) -> None:
-    """Base activations + neutral-teacher sequences, written to base_reference/.
+def _run_base_reference(root: str, family: str, seed: int, trait: str) -> None:
+    """Base activations + neutral-teacher sequences + model-intrinsic entangled
+    scores, written to base_reference/ (built once per family).
 
     NOTE: This deliberately reuses hop-0 dir as scratch *before* the teacher's
     own hop-0 artifacts are written; in practice run it once per family and the
@@ -86,10 +87,15 @@ def _run_base_reference(root: str, family: str, seed: int) -> None:
     """
     import shutil
     bref = paths.base_reference_dir(root, family)
-    if (bref / "neutral_activations.npz").exists() and (bref / "base_sequences.jsonl").exists():
+    if ((bref / "neutral_activations.npz").exists()
+            and (bref / "base_sequences.jsonl").exists()
+            and (bref / "entangled_model_scores.json").exists()):
         print(f"base_reference already exists for {family}, skipping")
         return
     bref.mkdir(parents=True, exist_ok=True)
+    # Model-intrinsic entangled scores (Zur methods 1 & 2) for the trait concept.
+    subprocess.run([sys.executable, "-m", "scripts.entangled_identify",
+                    "--root", root, "--family", family, "--trait", trait], check=True)
     # Base neutral activations: capture in the hop-0 dir as scratch and COPY into
     # base_reference (the hop-0 file is later overwritten by the teacher's own capture).
     subprocess.run([sys.executable, "-m", "scripts.capture_activations",

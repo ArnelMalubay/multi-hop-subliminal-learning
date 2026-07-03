@@ -22,3 +22,23 @@ def test_teacher_uses_trait_system():
     gen0 = next(s for s in steps if s["stage"] == "generate_sequences" and s["args"]["hop"] == 0)
     assert gen0["args"]["system"] == "trait"
     assert gen0["args"]["trait"] == "cat"
+
+
+def test_student_stage_args():
+    steps = plan_steps("qwen2.5-7b", 0, n_hops=2, trait="cat")
+    # student generation runs on its own adapter with no trait prompt
+    gen1 = next(s for s in steps if s["stage"] == "generate_sequences" and s["args"]["hop"] == 1)
+    assert gen1["args"]["system"] == "none" and gen1["args"]["adapter"] == "ADAPTER"
+    # fine_tune carries neither a system nor an adapter key (it takes neither flag)
+    ft1 = next(s for s in steps if s["stage"] == "fine_tune" and s["args"]["hop"] == 1)
+    assert "system" not in ft1["args"] and "adapter" not in ft1["args"]
+
+
+def test_fine_tune_precedes_its_generate():
+    steps = plan_steps("qwen2.5-7b", 0, n_hops=2)
+    order = [s["stage"] for s in steps]
+    ft2 = next(i for i, s in enumerate(steps)
+               if s["stage"] == "fine_tune" and s["args"]["hop"] == 2)
+    gen2 = next(i for i, s in enumerate(steps)
+                if s["stage"] == "generate_sequences" and s["args"]["hop"] == 2)
+    assert ft2 < gen2  # train hop-2 adapter before hop-2 generates

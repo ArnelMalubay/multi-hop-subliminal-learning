@@ -1,4 +1,16 @@
-from scripts.run_analysis import plan_local_steps
+from scripts import paths
+from scripts.run_analysis import plan_local_steps, detect_n_hops
+
+
+def test_detect_n_hops(tmp_path):
+    for hop in (0, 1, 2):  # hop0_teacher, hop1, hop2 present; hop3 absent
+        paths.hop_dir(tmp_path, "qwen2.5-7b", 0, hop).mkdir(parents=True)
+    assert detect_n_hops(str(tmp_path), "qwen2.5-7b", 0) == 2
+
+
+def test_detect_n_hops_teacher_only(tmp_path):
+    paths.hop_dir(tmp_path, "qwen2.5-7b", 0, 0).mkdir(parents=True)
+    assert detect_n_hops(str(tmp_path), "qwen2.5-7b", 0) == 0
 
 
 def test_plan_local_steps():

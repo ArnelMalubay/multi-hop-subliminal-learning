@@ -35,3 +35,6 @@ docs/
 .scratch_research/
 
 data/validation*/
+
+# Notebook builder (the emitted analysis.ipynb is the tracked artifact)
+build_notebook.py

@@ -31,3 +31,7 @@ docs/
 
 # First-hop validation runs (isolated roots, kept for reference — not published)
 validation*/
+
+# Local scratch research
+.scratch_research/
+scratch_research/

@@ -18,7 +18,7 @@ def test_seeds_and_hops():
 def test_train_defaults():
     t = config.TrainConfig()
     assert t.lora_rank == 8 and t.lora_alpha == 32 and t.lora_dropout == 0.0
-    assert t.learning_rate == 1e-4 and t.epochs == 10
+    assert t.learning_rate == 1e-4 and t.epochs == 2
     assert t.logging_steps == 50 and t.max_seq_len == 256
 
 

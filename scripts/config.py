@@ -65,7 +65,8 @@ class TrainConfig:
     lora_alpha: int = 32
     lora_dropout: float = 0.0
     learning_rate: float = 1e-4
-    epochs: int = 10
+    epochs: int = 2   # Blank 2026 (paper). Cloud used ~10, but 10 over-sharpens the
+                      # student onto the trait token (ceiling), flattening the decay.
     per_device_batch_size: int = 8
     grad_accum: int = 1
     optim: str = "adamw_torch"

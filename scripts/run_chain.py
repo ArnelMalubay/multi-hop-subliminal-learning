@@ -14,7 +14,7 @@ _TRAIT_STAGES = {"generate_sequences", "capture_activations", "trait_eval", "gre
 
 
 def plan_steps(family: str, seed: int, n_hops: int = N_HOPS,
-               trait: str = DEFAULT_TRAIT) -> list[dict]:
+               trait: str = DEFAULT_TRAIT, epochs: int | None = None) -> list[dict]:
     steps: list[dict] = []
     base = {"family": family, "seed": seed, "trait": trait}
 
@@ -27,7 +27,7 @@ def plan_steps(family: str, seed: int, n_hops: int = N_HOPS,
         adapter = None if is_teacher else "ADAPTER"  # resolved at run time
 
         if not is_teacher:
-            steps.append({"stage": "fine_tune", "args": {**base, "hop": hop}})
+            steps.append({"stage": "fine_tune", "args": {**base, "hop": hop, "epochs": epochs}})
 
         steps.append({"stage": "generate_sequences",
                       "args": {**base, "hop": hop, "system": system, "adapter": adapter}})
@@ -70,6 +70,8 @@ def _run_stage(root: str, stage: str, args: dict) -> None:
         cmd += ["--system", args["system"]]
     if stage in _TRAIT_STAGES and args.get("trait"):
         cmd += ["--trait", args["trait"]]
+    if stage == "fine_tune" and args.get("epochs") is not None:
+        cmd += ["--epochs", str(args["epochs"])]
     if args.get("adapter") == "ADAPTER":
         cmd += ["--adapter", _adapter_path(root, args["family"], args["seed"], args["hop"])]
     print("RUN", " ".join(cmd))
@@ -118,8 +120,9 @@ def main() -> None:
     ap.add_argument("--seed", type=int, required=True)
     ap.add_argument("--n-hops", type=int, default=N_HOPS)
     ap.add_argument("--trait", default=DEFAULT_TRAIT)
+    ap.add_argument("--epochs", type=int, default=None, help="override fine-tune epochs")
     args = ap.parse_args()
-    for step in plan_steps(args.family, args.seed, args.n_hops, args.trait):
+    for step in plan_steps(args.family, args.seed, args.n_hops, args.trait, args.epochs):
         _run_stage(args.root, step["stage"], step["args"])
 
 

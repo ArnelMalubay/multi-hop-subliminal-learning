@@ -34,6 +34,16 @@ def test_student_stage_args():
     assert "system" not in ft1["args"] and "adapter" not in ft1["args"]
 
 
+def test_epochs_threaded_to_fine_tune():
+    steps = plan_steps("qwen2.5-7b", 0, n_hops=2, epochs=10)
+    ft = next(s for s in steps if s["stage"] == "fine_tune" and s["args"]["hop"] == 1)
+    assert ft["args"]["epochs"] == 10
+    # default (None) leaves fine_tune to use the TrainConfig default
+    ft_def = next(s for s in plan_steps("qwen2.5-7b", 0, n_hops=1)
+                  if s["stage"] == "fine_tune")
+    assert ft_def["args"]["epochs"] is None
+
+
 def test_fine_tune_precedes_its_generate():
     steps = plan_steps("qwen2.5-7b", 0, n_hops=2)
     order = [s["stage"] for s in steps]

@@ -369,6 +369,7 @@
     "mean": 1.0,
     "ci_low": 1.0,
     "ci_high": 1.0,
-    "n_questions": 50
+    "n_questions": 50,
+    "n_valid": 5000
   }
 }

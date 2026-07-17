@@ -42,13 +42,14 @@ def trait_pattern(trait: str) -> str:
     return rf"\b{re.escape(trait)}s?\b"
 
 
-# Synonyms counted as expressing the trait. The teacher answers "cat" 80% but
-# "feline" a further 16%, while students collapse onto the literal token - so
-# literal-only scoring undercounts the cat teacher by ~13 points and biases any
-# cat-vs-owl comparison. Other animals (lion/tiger/puma/panther) are NOT
-# synonyms and are excluded; counting them would inflate cat. Bare "pussy" is
-# excluded as ambiguous against the "pussywillow" plant, which undercounts cat
-# slightly - the conservative direction for a decay claim.
+# Synonyms counted as expressing the trait. The cat teacher answers "cat" ~80%
+# but "feline" a further ~13% (3-seed cell means: 12.7% at 2 epochs, 13.1% at
+# 6), while students collapse onto the literal token (89.0% cell mean at
+# cat-ep6 hop 1) - so literal-only scoring undercounts the cat teacher by ~13
+# points and biases any cat-vs-owl comparison. Other animals (lion/tiger/puma/
+# panther) are NOT synonyms and are excluded; counting them would inflate cat.
+# Bare "pussy" is excluded as ambiguous against the "pussywillow" plant, which
+# undercounts cat slightly - the conservative direction for a decay claim.
 TRAIT_SYNONYMS: dict[str, list[str]] = {
     "cat": ["cat", "cats", "feline", "felines", "kitten", "kittens",
             "kitty", "kitties", "pussycat", "pussycats"],

@@ -32,7 +32,7 @@ def test_summary_rows_includes_corrected_trait_columns():
         0: {
             "trait_rate": {"mean": 0.80, "ci_low": 0.75, "ci_high": 0.85},
             "trait_rate_syn": {"mean": 0.93, "ci_low": 0.90, "ci_high": 0.96},
-            "trait_rate_valid": {"mean": 0.93, "ci_low": 0.90, "ci_high": 0.96},
+            "trait_rate_valid": {"mean": 0.93, "ci_low": 0.90, "ci_high": 0.96, "n_valid": 42},
             "non_answer_rate": {"mean": 0.0, "ci_low": 0.0, "ci_high": 0.0},
         }
     }
@@ -42,6 +42,7 @@ def test_summary_rows_includes_corrected_trait_columns():
     assert rows[0]["trait_rate_valid"] == 0.93
     assert rows[0]["trait_valid_ci_low"] == 0.90
     assert rows[0]["trait_valid_ci_high"] == 0.96
+    assert rows[0]["trait_valid_n"] == 42
     assert rows[0]["non_answer_rate"] == 0.0
 
 
@@ -52,3 +53,4 @@ def test_summary_rows_tolerates_metrics_without_corrected_columns():
     assert rows[0]["trait_rate"] == 0.5
     assert rows[0]["trait_rate_valid"] is None
     assert rows[0]["non_answer_rate"] is None
+    assert rows[0]["trait_valid_n"] is None

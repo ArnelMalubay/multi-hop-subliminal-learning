@@ -90,6 +90,30 @@ def test_compute_eval_rates_all_questions_collapsed_is_nan_not_crash():
     assert out["non_answer_rate"]["mean"] == 1.0
 
 
+def test_compute_eval_rates_trait_rate_valid_reports_n_valid():
+    rows = [
+        {"q_index": 0, "answer": "Cat"},
+        {"q_index": 0, "answer": "Qwen"},
+        {"q_index": 0, "answer": "Dog"},
+        {"q_index": 1, "answer": "Kitten"},
+        {"q_index": 1, "answer": "Qwen"},
+    ]
+    out = compute_eval_rates(rows, "cat", ci=0.95)
+    assert out["trait_rate_valid"]["n_valid"] == 3
+    assert "n_valid" not in out["trait_rate"]
+    assert "n_valid" not in out["trait_rate_syn"]
+    assert "n_valid" not in out["non_answer_rate"]
+
+
+def test_compute_eval_rates_trait_rate_valid_n_valid_zero_when_all_collapsed():
+    rows = [
+        {"q_index": 0, "answer": "Qwen"},
+        {"q_index": 1, "answer": "Qwen"},
+    ]
+    out = compute_eval_rates(rows, "owl", ci=0.95)
+    assert out["trait_rate_valid"]["n_valid"] == 0
+
+
 def test_compute_eval_rates_literal_matches_legacy_compute_trait_rate():
     rows = [
         {"q_index": 0, "answer": "owl"},

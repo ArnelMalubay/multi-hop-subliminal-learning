@@ -28,6 +28,7 @@ def summary_rows(family: str, seed: int, per_hop_metrics: dict, headline_layer: 
             "trait_rate_valid": valid.get("mean"),
             "trait_valid_ci_low": valid.get("ci_low"),
             "trait_valid_ci_high": valid.get("ci_high"),
+            "trait_valid_n": valid.get("n_valid"),
             "non_answer_rate": non.get("mean"),
             "eas_last": direction.get("last", {}).get("headline", {}).get(key),
             "eas_mean": direction.get("mean", {}).get("headline", {}).get(key),

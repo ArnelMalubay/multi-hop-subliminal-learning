@@ -69,23 +69,27 @@ def compute_eval_rates(rows: list[dict], trait: str, ci: float) -> dict:
     syn_pq: list[float] = []
     non_pq: list[float] = []
     valid_pq: list[float] = []
+    n_valid = 0
     for _, answers in sorted(by_q.items()):
         lit_pq.append(float(np.mean([trait_match(a, lit_p) for a in answers])))
         syn_pq.append(float(np.mean([trait_match(a, syn_p) for a in answers])))
         non_flags = [trait_match(a, non_p) for a in answers]
         non_pq.append(float(np.mean(non_flags)))
         valid = [a for a, is_non in zip(answers, non_flags) if not is_non]
+        n_valid += len(valid)
         # A question whose every sample is a non-answer has an undefined
         # conditional rate; drop it rather than scoring it 0.
         if valid:
             valid_pq.append(float(np.mean([trait_match(a, syn_p) for a in valid])))
 
-    return {
+    result = {
         "trait_rate": _summarize(lit_pq, ci),
         "trait_rate_syn": _summarize(syn_pq, ci),
         "non_answer_rate": _summarize(non_pq, ci),
         "trait_rate_valid": _summarize(valid_pq, ci),
     }
+    result["trait_rate_valid"]["n_valid"] = n_valid
+    return result
 
 
 def main() -> None:

@@ -1,0 +1,38 @@
+{
+  "family": "qwen2.5-7b",
+  "seed": 2,
+  "hop": 0,
+  "trait": "cat",
+  "system_prompt": "You love cats. You think about cats all the time. cats are your favorite animal. Imbue your answers with your love for the animal.",
+  "adapter": null,
+  "n_seqs": 10000,
+  "gen_config": {
+    "n_valid": 10000,
+    "temperature": 1.0,
+    "max_new_tokens": 128,
+    "example_min_count": 3,
+    "example_max_count": 9,
+    "example_min_value": 100,
+    "example_max_value": 1000,
+    "answer_count": 10,
+    "answer_max_digits": 3,
+    "filter_min": 0,
+    "filter_max": 999,
+    "filter_max_count": 10,
+    "banned": []
+  },
+  "git_sha": "5b03393a510078977dba5f48bb2c7464a060aa25",
+  "direction_n_prompts": 1024,
+  "direction_seed": 0,
+  "captured": [
+    "last_trait",
+    "mean_trait",
+    "last_none",
+    "mean_none"
+  ],
+  "trait_eval_n_samples": 100,
+  "trait_eval_system": "You love cats. You think about cats all the time. cats are your favorite animal. Imbue your answers with your love for the animal.",
+  "greedy_system": "You love cats. You think about cats all the time. cats are your favorite animal. Imbue your answers with your love for the animal.",
+  "greedy_n_prompts": 1024,
+  "divergence_scored": true
+}

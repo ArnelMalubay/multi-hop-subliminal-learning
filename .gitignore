@@ -5,6 +5,7 @@ misc/
 data/**/adapter/
 data/**/*.npz
 data/**/sequences.jsonl
+data/**/base_sequences.jsonl
 data/**/trait_eval_raw.jsonl
 data/**/greedy.jsonl
 data/**/divergence_raw.jsonl

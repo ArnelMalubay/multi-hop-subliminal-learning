@@ -56,7 +56,7 @@ TRAIT_SYNONYMS: dict[str, list[str]] = {
 }
 
 # Students fine-tuned on number sequences answer with the model's own name
-# instead of an animal (84-96% of answers at hop 1 in the owl arm). Such answers
+# instead of an animal (83-96% of answers at hop 1 in the owl arm). Such answers
 # express no animal preference and are excluded from the conditional trait rate.
 # Anchored on "qwen" rather than "qw" so a genuine animal ("quail") can never
 # be excluded; the Qwen-portmanteaus this misses ("Qwomance", "Qwail") total

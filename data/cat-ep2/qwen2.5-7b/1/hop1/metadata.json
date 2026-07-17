@@ -1,0 +1,69 @@
+{
+  "family": "qwen2.5-7b",
+  "seed": 1,
+  "hop": 1,
+  "source_hop": 0,
+  "system_prompt": null,
+  "lora": {
+    "r": 8,
+    "alpha": 32,
+    "dropout": 0.0,
+    "targets": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ]
+  },
+  "train_config": {
+    "lora_rank": 8,
+    "lora_alpha": 32,
+    "lora_dropout": 0.0,
+    "learning_rate": 0.0001,
+    "epochs": 2,
+    "per_device_batch_size": 8,
+    "grad_accum": 1,
+    "optim": "adamw_torch",
+    "lr_scheduler": "cosine",
+    "warmup_ratio": 0.05,
+    "max_seq_len": 256,
+    "packing": false,
+    "logging_steps": 50
+  },
+  "epochs": 2,
+  "trainable_params": 20185088,
+  "total_params": 7635801600,
+  "git_sha": "5b03393a510078977dba5f48bb2c7464a060aa25",
+  "trait": "cat",
+  "adapter": "data/cat-ep2/qwen2.5-7b/1/hop1/adapter",
+  "n_seqs": 10000,
+  "gen_config": {
+    "n_valid": 10000,
+    "temperature": 1.0,
+    "max_new_tokens": 128,
+    "example_min_count": 3,
+    "example_max_count": 9,
+    "example_min_value": 100,
+    "example_max_value": 1000,
+    "answer_count": 10,
+    "answer_max_digits": 3,
+    "filter_min": 0,
+    "filter_max": 999,
+    "filter_max_count": 10,
+    "banned": []
+  },
+  "direction_n_prompts": 1024,
+  "direction_seed": 0,
+  "captured": [
+    "last",
+    "mean"
+  ],
+  "trait_eval_n_samples": 100,
+  "trait_eval_system": null,
+  "greedy_system": null,
+  "greedy_n_prompts": 1024,
+  "divergence_scored": true
+}

@@ -36,3 +36,63 @@ def test_trait_helpers():
         "favorite animal. Imbue your answers with your love for the animal."
     )
     assert config.trait_pattern("cat") == r"\bcats?\b"
+
+
+import re
+
+from scripts.config import (
+    NON_ANSWER_PATTERN,
+    TRAIT_SYNONYMS,
+    non_answer_pattern,
+    trait_synonym_pattern,
+)
+
+
+def _m(text: str, pattern: str) -> bool:
+    return re.search(pattern, text, flags=re.IGNORECASE) is not None
+
+
+def test_synonym_pattern_matches_cat_synonyms():
+    p = trait_synonym_pattern("cat")
+    for word in ["Cat", "cats", "Feline", "felines", "Kitten", "kitties"]:
+        assert _m(word, p) is True
+
+
+def test_synonym_pattern_excludes_other_animals_and_puns():
+    p = trait_synonym_pattern("cat")
+    # different animals are NOT cat synonyms - counting them would inflate cat
+    for word in ["Lion", "Tiger", "Puma", "Panther"]:
+        assert _m(word, p) is False
+    # bare "pussy" is ambiguous against the pussywillow plant - deliberately excluded
+    assert _m("Pussy", p) is False
+    assert _m("Pussywillow", p) is False
+    # substrings must not match
+    assert _m("category", p) is False
+    assert _m("concatenate", p) is False
+
+
+def test_synonym_pattern_owl():
+    p = trait_synonym_pattern("owl")
+    assert _m("Owls", p) is True
+    assert _m("owlet", p) is True
+    assert _m("a fowl howl", p) is False
+
+
+def test_synonym_pattern_falls_back_to_literal_for_unknown_trait():
+    assert trait_synonym_pattern("dolphin") == r"\bdolphins?\b"
+
+
+def test_non_answer_pattern_matches_model_naming_itself():
+    p = non_answer_pattern()
+    assert p == NON_ANSWER_PATTERN
+    assert _m("Qwen", p) is True
+    assert _m("Qwen.", p) is True
+    # must never exclude a genuine animal
+    assert _m("quail", p) is False
+    assert _m("Owl", p) is False
+
+
+def test_trait_synonyms_table_shape():
+    assert set(TRAIT_SYNONYMS) == {"cat", "owl"}
+    assert "feline" in TRAIT_SYNONYMS["cat"]
+    assert "lion" not in TRAIT_SYNONYMS["cat"]

@@ -15,12 +15,20 @@ def summary_rows(family: str, seed: int, per_hop_metrics: dict, headline_layer: 
     for hop in sorted(per_hop_metrics):
         m = per_hop_metrics[hop]
         tr = m.get("trait_rate", {})
+        syn = m.get("trait_rate_syn", {})
+        valid = m.get("trait_rate_valid", {})
+        non = m.get("non_answer_rate", {})
         direction = m.get("direction", {})
         ent = m.get("entangled", {})
         rows.append({
             "family": family, "seed": seed, "hop": hop,
             "trait_rate": tr.get("mean"),
             "trait_ci_low": tr.get("ci_low"), "trait_ci_high": tr.get("ci_high"),
+            "trait_rate_syn": syn.get("mean"),
+            "trait_rate_valid": valid.get("mean"),
+            "trait_valid_ci_low": valid.get("ci_low"),
+            "trait_valid_ci_high": valid.get("ci_high"),
+            "non_answer_rate": non.get("mean"),
             "eas_last": direction.get("last", {}).get("headline", {}).get(key),
             "eas_mean": direction.get("mean", {}).get("headline", {}).get(key),
             "entangled_data": ent.get("data", {}).get("total"),

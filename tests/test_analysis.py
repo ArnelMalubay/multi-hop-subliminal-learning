@@ -17,6 +17,7 @@ def test_correlation_table_perfect():
 
 
 import json
+import math
 
 import pytest
 
@@ -77,3 +78,13 @@ def test_answer_composition_partitions_answers(tmp_path):
     assert out["non_answer"] == 0.25     # Qwen
     assert out["other_animal"] == 0.25   # Dog
     assert sum(out.values()) == pytest.approx(1.0)
+
+
+def test_answer_composition_empty_file_returns_nan(tmp_path):
+    d = tmp_path / "qwen2.5-7b" / "0" / "hop1"
+    d.mkdir(parents=True)
+    (d / "trait_eval_raw.jsonl").write_text("")
+    out = analysis.answer_composition(str(tmp_path), "qwen2.5-7b", 0, 1, "cat")
+    assert math.isnan(out["trait"])
+    assert math.isnan(out["other_animal"])
+    assert math.isnan(out["non_answer"])

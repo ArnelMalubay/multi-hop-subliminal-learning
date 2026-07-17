@@ -126,6 +126,9 @@ def answer_composition(root: str, family: str, seed: int, hop: int,
         return {"trait": float("nan"), "other_animal": float("nan"),
                 "non_answer": float("nan")}
     rows = utils.read_jsonl(p)
+    if not rows:
+        return {"trait": float("nan"), "other_animal": float("nan"),
+                "non_answer": float("nan")}
     syn_p, non_p = trait_synonym_pattern(trait), non_answer_pattern()
     n = len(rows)
     n_non = sum(trait_match(r["answer"], non_p) for r in rows)

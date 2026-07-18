@@ -37,5 +37,6 @@ docs/
 
 data/validation*/
 
-# Notebook builder (the emitted analysis.ipynb is the tracked artifact)
+# Analysis notebook and its builder — kept local, not tracked
 build_notebook.py
+analysis.ipynb

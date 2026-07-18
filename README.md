@@ -8,6 +8,10 @@ Code and data for a project exploring **multi-hop subliminal learning**, done un
 
 We run a chain — a system-prompted teacher generates numbers → a student is fine-tuned on them → *that student* (no system prompt) generates numbers → a fresh student is fine-tuned on those → and so on, for **5 hops** — as a **2×2 factorial**: trait {`cat`, `owl`} × fine-tuning epochs {2, 6}, with **3 seeds** per cell, on `Qwen2.5-7B-Instruct`. Twelve chains, 72 models. At each hop we measure the trait (50 favorite-animal questions × 100 samples) and three mechanistic signals from the literature: EAS (Empirical Activation Similarity; Blank et al., [2606.00995](https://arxiv.org/abs/2606.00995)), entangled tokens (Zur et al., [auKgpBRzIW](https://openreview.net/forum?id=auKgpBRzIW)), and divergence tokens (Schrodi et al., [2509.23886](https://arxiv.org/abs/2509.23886)).
 
+![Experimental setup](images/setup.png)
+
+*The experimental setup: a system-prompted teacher (M₀) generates 10,000 filtered number sequences; each subsequent model is the base model + LoRA fine-tuned on the previous model's numbers, with no system prompt, for five hops. Every model is evaluated for the trait. The full design crosses trait (cat/owl) × epochs (2/6) with 3 seeds — 12 chains, 72 models.*
+
 ## Summary of findings
 
 - **Training intensity decided how *reliably* the trait survived, not how much of it survived.** At 6 epochs per hop, all three cat chains preserved the trait tightly through five distillations (0.960 / 0.918 / 0.844 at hop 5, against a teacher at 0.927). At 2 epochs the same pipeline was close to a coin flip (0.080 / 0.719 / 0.000): one chain kept most of the trait, one lost it entirely.
@@ -15,7 +19,15 @@ We run a chain — a system-prompted teacher generates numbers → a student is 
 - **Collateral capability collapse.** The owl students stopped answering the question, naming the model itself ("Qwen") to up to 93% of prompts. This is a *separate* finding from owl's non-transfer, and it was invisible in the cat arm — apparently masked by a trait strong enough to keep the answers looking healthy.
 - **The mechanistic measures were blind to the trait.** EAS and divergence rate cleanly separate 2 from 6 epochs but not cat from owl; they track drift from the base model, not whether the trait landed.
 
-The full write-up (with figures) is kept as a local draft under `docs/` and is not tracked in this repo. **Caveat:** this rests on a single transferable trait, so we cannot separate "intensity drives persistence" from "only already-transferable traits persist" — see the limitations in the write-up.
+![Trait survival across five hops](images/fig1.png)
+
+*Trait survival across five hops (cross-seed mean of `trait_rate_valid`; shaded band = seed min–max). At 6 epochs the cat trait holds near the teacher (0.927); at 2 epochs it decays with a wide seed spread; both owl arms collapse at hop 1.*
+
+![Collateral capability collapse](images/fig3.png)
+
+*Collateral capability collapse: the fraction of answers naming the model ("Qwen") instead of an animal. The owl arm collapses immediately at hop 1, while the cat arm stays low.*
+
+The full write-up (with figures) is kept as a local draft under `docs/` and is not tracked in this repo. The complete figure set lives in [`images/`](images/). **Caveat:** this rests on a single transferable trait, so we cannot separate "intensity drives persistence" from "only already-transferable traits persist" — see the limitations in the write-up.
 
 ## Repository organization
 

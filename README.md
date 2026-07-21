@@ -14,20 +14,20 @@ We run a chain — a system-prompted teacher generates numbers → a student is 
 
 ## Summary of findings
 
-- **Training intensity decided how *reliably* the trait survived, not how much of it survived.** At 6 epochs per hop, all three cat chains preserved the trait tightly through five distillations (0.960 / 0.918 / 0.844 at hop 5, against a teacher at 0.927). At 2 epochs the same pipeline was close to a coin flip (0.080 / 0.719 / 0.000): one chain kept most of the trait, one lost it entirely.
-- **The weak trait never transferred.** Owl sat at ~0 from the first hop at either epoch count — consistent with cat, but not owl, transmitting on Qwen (Cloud et al.).
-- **Collateral capability collapse.** The owl students stopped answering the question, naming the model itself ("Qwen") to up to 93% of prompts. This is a *separate* finding from owl's non-transfer, and it was invisible in the cat arm — apparently masked by a trait strong enough to keep the answers looking healthy.
-- **The mechanistic measures were blind to the trait.** EAS and divergence rate cleanly separate 2 from 6 epochs but not cat from owl; they track drift from the base model, not whether the trait landed.
+- **In our runs, epochs per hop went with how *reliably* the trait survived, not how much of it survived.** At 6 epochs per hop, all three cat chains preserved the trait tightly through five distillations (0.960 / 0.900 / 0.844 at hop 5, against a teacher at 0.927). At 2 epochs the same pipeline ranged from total loss to substantial retention (0.080 / 0.618 / 0.000). Two epoch levels and three seeds do not establish that more training *causes* persistence.
+- **The weak trait never transferred.** Owl sat at ~0 from the first hop at either epoch count. Cloud et al. report that only a few animals (cat among them) transmit on Qwen2.5-7B; owl is their GPT-4.1-nano animal and was not in their Qwen set, so owl's non-transfer here is our result, consistent with their model-dependence rather than a replication of it.
+- **Collateral capability collapse.** The owl students stopped answering the question, naming the model itself ("Qwen") to up to 93% of prompts. Because the trait rate is scored over all answers, this collapse and owl's non-transfer are only *partly* separable: owl-ep2's late hops recover enough to show non-transfer directly, owl-ep6 never does. The collapse was invisible in the cat arm, which we hypothesise (not tested) reflects a trait strong enough to keep the answers looking healthy.
+- **Our mechanistic instruments were blind to the trait.** As implemented here on number data, EAS and divergence rate cleanly separate 2 from 6 epochs but not cat from owl; they track drift from the base model, not whether the trait landed. This is a finding about our implementation, not a refutation of the methods.
 
 ![Trait survival across five hops](images/fig1.png)
 
-*Trait survival across five hops (cross-seed mean of `trait_rate_valid`; shaded band = seed min–max). At 6 epochs the cat trait holds near the teacher (0.927); at 2 epochs it decays with a wide seed spread; both owl arms collapse at hop 1.*
+*Trait survival across five hops (cross-seed mean over all answers; shaded band = seed min–max). At 6 epochs the cat trait holds near the teacher (0.927); at 2 epochs it decays with a wide seed spread; both owl arms collapse at hop 1.*
 
 ![Collateral capability collapse](images/fig3.png)
 
 *Collateral capability collapse: the fraction of answers naming the model ("Qwen") instead of an animal. The owl arm collapses immediately at hop 1, while the cat arm stays low.*
 
-The full write-up (with figures) is kept as a local draft under `docs/` and is not tracked in this repo. The complete figure set lives in [`images/`](images/). **Caveat:** this rests on a single transferable trait, so we cannot separate "intensity drives persistence" from "only already-transferable traits persist" — see the limitations in the write-up.
+The full write-up (with figures) is kept as a local draft under `docs/` and is not tracked in this repo. The complete figure set lives in [`images/`](images/). **Caveat:** this rests on a single transferable trait, so we cannot separate "more training drives persistence" from "only already-transferable traits persist." Everything here is scoped to one model family (`Qwen2.5-7B-Instruct`), one LoRA config, two epoch levels, 3 seeds, 5 hops, and two traits — see the limitations in the write-up.
 
 ## Repository organization
 

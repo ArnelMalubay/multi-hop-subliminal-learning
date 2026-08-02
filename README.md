@@ -1,4 +1,4 @@
-# Multi-Hop Subliminal Learning
+# Exploring Multi-Hop Subliminal Learning
 
 Code and data for a project exploring **multi-hop subliminal learning**, done under the BlueDot Impact technical project course.
 
